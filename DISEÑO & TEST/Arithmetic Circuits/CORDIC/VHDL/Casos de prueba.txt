@@ -1,0 +1,56 @@
+-- Universidad Pedagógica y Tecnológica de Colombia UPTC
+-- Grupo de Investigación en Robótica y Automatización Industrial GIRA
+-- Ing. Robert Alexander Limas
+-- Ing. Wilson Javier Pérez Holguín
+-- Información para correr la simulación de la implementación VHDL del algoritmo CORDIC en ModelSim
+-- Fecha: 14/05/2021
+
+La simulación se analiza teniendo en cuenta que, para todos los casos, los datos están codificados en 14 bits, lo que significa que se deben multiplicar su valor por 2 ** 14 para su ingreso y dividir por 2 ** 14 los datos de salida.
+
+El módulo CORDIC tiene dos modos de operación: Modo Rotación y Modo Vectorización.
+
+1. Cuando la línea mode es 0, el bloque CORDIC opera en modo de rotación.
+    En este modo, los archivos .txt correspondientes a los datos de entrada input_x e input_y
+    deben tener el valor de 0 y el archivo input_z debe tener el valor del angulo en radianes 
+    codificado en punto fijo.
+    De esta forma, la primera línea de los archivos corresponde a este caso, por lo que en la
+    simulación tendríamos en la entrada del bloque CORDIC:
+        La entrada x_i = 0, la entrada y_i = 0, la entrada z_i = -25735, dato que corresponde 
+        a -1.5707 rad (-90°)
+     Debido al pipeline, el modulo requiere 18 pulsos de reloj para completar el cálculo. Al terminar de procesar
+    tendremos en la salida:
+        En la salida x_o = Cos del angulo, y_o = Sin del angulo, z_o = No importa, 
+        mode_o = '0', enable_o = '1'
+        La señal de salida enable_o indica si el dato procesado es válido o no.
+        La señal de salida mode_o indica como se deben analizar los resultados
+        De esta forma, en el primer dato valido procesado (ubicados cada línea 18 en los 
+        archivos de salida) tendriamos:
+            La salida output_mode_vhdl = '0' correspondiente al modo de operación rotación
+            La salida output_x_vhdl = -5 correspondiente al Coseno, en este caso cos(90°), que al 
+            dividirlo por 2 ** 14 tendríamos -0.00030517578125
+            La salida output_y_vhdl = -16381 correspondiente al Seno, en este caso sin(90°), que
+            al dividirlo por 2 ** 14 tendríamos -0.99981689453125
+
+2. Cuando la línea mode es 1, el bloque CORDIC opera en modo vectorización
+    En este modo, los archivos .txt deben contener: 
+       Los datos de entrada input_x e input_y corresponden a los valores de las coordenadas (x, y),
+       representados en punto fijo, para las que se quiere calcular el ángulo que forman entre estos
+       El archivo input_z debe ser igual a 0
+       De esta forma, la segunda línea de los archivos corresponde al primer caso de simulación 
+       en este modo en el que x_i = 0, y_i = -16384, equivalente a la coordenada -1 en punto fijo, y
+       z_i = 0
+       Igual que en el caso anterior, después de 18 ciclos de reloj se obtiene el dato procesado, el
+       cual se encuentra en la línea 19 de los archivos de salida:
+            output_mode_vhdl = '1' que indica modo de operación vectorización
+            output_x_vhdl = 26985 correspondiente la magnitud del vector. En este caso dividiéndolo 
+            por 2 ** 14 tenemos 1.6470, que equivale a la magnitud del vector después de la rotación.
+            Cabe aclarar que la división por 2 ** 14 no se ha implementado aún.
+            output_z_vhdl: -25732 correspondiente a la arctan2(y / x), al decodificar tenemos -1.57055 rad,                           correspondiente a -90°.
+
+IMPORTANTE: 
+- La simulacion conmuta permanentemente entre los dos modos de operacion con
+  el objetivo de testear el stream de datos y el funcionamiento de la implementación realizada.
+- El radix de los datos en la simulacion de Modelsim se debe seleccionar como: Decimal
+- Para iniciar la simulación, digite en la línea de comando de ModelSim:  do run.do   
+  para que se carguen automaticamente las señales de interés y se ejecute la simulación 
+  de acuerdo a lo establecido en los puntos anteriores.

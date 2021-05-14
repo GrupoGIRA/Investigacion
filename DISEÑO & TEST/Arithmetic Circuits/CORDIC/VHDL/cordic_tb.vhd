@@ -1,9 +1,9 @@
 --*************************************************************************************************
 --	Stream Processing CORDIC Algorithm Implementation
 --	Authors:
---  	Robert Limas
---  	Wilson Javier Perez
---	Year: 2020
+--    Robert Alexander Limas
+--    Wilson Javier Perez Holguin
+--
 --	GIRA Research Group
 --	Universidad Pedagogica y Tecnologica de Colombia
 --
@@ -12,6 +12,7 @@
 --	Description:
 --		Testbench file to verify the correct operation of the cordic algorithm implementation.
 --		Thsi file uses txt files as input and generate txt files as output.
+--  Year: 2020
 --*************************************************************************************************
 
 library ieee;
@@ -19,25 +20,25 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use std.textio.all;
 
-entity tb is
+entity cordic_tb is
 	generic(n: natural := 28
 	);
 end entity;
 
-architecture rtl of tb is
+architecture rtl of cordic_tb is
 
 	-- Accesing Files in Read Mode 
-	file data_x_input: text open READ_MODE is "../VHDL/input/input_x.txt";
-	file data_y_input: text open READ_MODE is "../VHDL/input/input_y.txt";
-	file data_z_input: text open READ_MODE is "../VHDL/input/input_z.txt";
-	file data_mode_input: text open READ_MODE is "../VHDL/input/input_mode.txt";
-	file data_enable_input: text open READ_MODE is "../VHDL/input/input_enable.txt";
+	file data_x_input: text open READ_MODE is "./input/input_x.txt";
+	file data_y_input: text open READ_MODE is "./input/input_y.txt";
+	file data_z_input: text open READ_MODE is "./input/input_z.txt";
+	file data_mode_input: text open READ_MODE is "./input/input_mode.txt";
+	file data_enable_input: text open READ_MODE is "./input/input_enable.txt";
 	-- Accesing Files in Write Mode
-	file data_x_output: text open WRITE_MODE is "../VHDL/output/output_x_vhdl.txt";
-	file data_y_output: text open WRITE_MODE is "../VHDL/output/output_y_vhdl.txt";
-	file data_z_output: text open WRITE_MODE is "../VHDL/output/output_z_vhdl.txt";
-	file data_mode_output: text open WRITE_MODE is "../VHDL/output/output_mode_vhdl.txt";
-	file data_enable_output: text open WRITE_MODE is "../VHDL/output/output_enable_vhdl.txt";
+	file data_x_output: text open WRITE_MODE is "./output/output_x_vhdl.txt";
+	file data_y_output: text open WRITE_MODE is "./output/output_y_vhdl.txt";
+	file data_z_output: text open WRITE_MODE is "./output/output_z_vhdl.txt";
+	file data_mode_output: text open WRITE_MODE is "./output/output_mode_vhdl.txt";
+	file data_enable_output: text open WRITE_MODE is "./output/output_enable_vhdl.txt";
 	-- Declearing signals
 	signal x_i, y_i, z_i: std_logic_vector(n-1 downto 0) := (others=>'0');
 	signal x_o, y_o, z_o: std_logic_vector(n-1 downto 0);
@@ -80,6 +81,7 @@ begin
 
 	--Reading files
 	process
+	
 		variable line_x_input, line_y_input, line_z_input: line;
 		variable line_x_output, line_y_output, line_z_output: line;
 		variable line_enable_input, line_mode_input: line;
@@ -89,7 +91,9 @@ begin
 		variable data_enable_i, data_mode_i: integer;
 		variable data_enable_o, data_mode_o: integer;
 		variable enable, mode: std_logic_vector(0 downto 0);
+	
 	begin
+	
 		wait for 600 ns;
 		wait until falling_edge(clk);
 		while not endfile (data_x_input) loop
@@ -151,4 +155,5 @@ begin
 		end loop;
 		wait;
 	end process;
+	
 end rtl;

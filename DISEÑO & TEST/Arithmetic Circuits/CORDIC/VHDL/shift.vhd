@@ -1,42 +1,42 @@
---**********************************************************************************************************************
---Stream Processing CORDIC Algorithm Implementation
---Authors:
+--*************************************************************************************************
+-- Stream Processing CORDIC Algorithm Implementation
+-- Authors:
 --  Robert Limas
 --  Wilson Javier Perez
---Year: 2020
---Research Group GIRA
---Universidad Pedagogica y Tecnologica de Colombia
+-- Year: 2020
+-- GIRA Research Group
+-- Universidad Pedagogica y Tecnologica de Colombia
 --
---Inputs:
+-- Inputs:
 --    a (required)
---Outputs:
+-- Outputs:
 --    y_left (a with m displacements to left), y_right  (a with m displacements to right)
 --
---Description:
---    This block corresponds to the divisions for each iteration
---    Generic n: bits numbers
---    Generic m: displacements numbers
---**********************************************************************************************************************
+-- Description:
+--    This block implements the data slots for each iteration
+--    	Generic n: bits numbers
+--    	Generic m: displacements numbers
+--*************************************************************************************************
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity shift is
-generic(
-	n: natural := 8;
-	m: natural := 3
-);
-port(
-	a: in std_logic_vector(n-1 downto 0);
-	y_left, y_right: out std_logic_vector(n-1 downto 0)
-);
+	generic(
+		n: natural := 8;
+		m: natural := 3
+	);
+	port(
+		a: in std_logic_vector(n-1 downto 0);
+		y_left, y_right: out std_logic_vector(n-1 downto 0)
+	);
 end entity;
 
 architecture rtl of shift is
 begin
 
-y_left <= std_logic_vector(shift_left(signed(a), m));
-y_right <= std_logic_vector(shift_right(signed(a), m));
+	y_left <= std_logic_vector(shift_left(signed(a), m));
+	y_right <= std_logic_vector(shift_right(signed(a), m));
 
 end rtl;
