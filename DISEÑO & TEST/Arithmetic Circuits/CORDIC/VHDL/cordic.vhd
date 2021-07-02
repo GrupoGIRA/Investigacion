@@ -13,7 +13,8 @@
 --    x_i (required), y_i (required), z_i (required), mode (required), enable (required)
 --    *** Warning: Inputs should be in fixed point ***
 --	Outputs:
---    x_o (cos(z_i)), y_o (sin(z_i)), z_o(arctan2(y_i / x_i))
+--    x_o (cos(z_i)), y_o (sin(z_i)), z_o(arctan2(y_i / x_i)) in circular coordinate
+--    x_o (cosh(z_i)), y_o (sinh(z_i)), z_o(arctanh(y_i / x_i)) in hyperbolic coordinate
 --    *** Warning: The results will be given at fixed point ***
 --
 --	Description:
@@ -37,14 +38,14 @@ use ieee.numeric_std.all;
 
 entity cordic is
 	generic(
-		n: natural := 28;
+		n: natural := 16;
 		iterations: natural := 16
 	);
 	port(
 		x_i, y_i, z_i: in std_logic_vector(n-1 downto 0);
-		mode, clk, rst, enable: in std_logic;
+		mode, clk, rst, enable, coord_sys: in std_logic;
 		x_o, y_o, z_o: out std_logic_vector(n-1 downto 0);
-		mode_o, enable_o: out std_logic
+		mode_o, enable_o, coord_out: out std_logic
 	);
 end entity;
 
@@ -58,8 +59,8 @@ architecture rtl of cordic is
 	signal xi_temp, yi_temp, zi_temp: data;
 	signal xo_temp, yo_temp, zo_temp: data;
 
-	signal mode_temp, enable_temp: std_logic_vector(iterations+1 downto 0);
-	signal x_temp: std_logic_vector(n-1 downto 0);
+	signal mode_temp, enable_temp, coord_temp: std_logic_vector(iterations+1 downto 0);
+	signal x_temp, const_aux: std_logic_vector(n-1 downto 0);
 
 	--Constant values arctangent table
 	type data_arctan is array (0 to iterations-1) of std_logic_vector(n-1 downto 0);
@@ -74,6 +75,19 @@ architecture rtl of cordic is
 		std_logic_vector(to_signed(0, n)), std_logic_vector(to_signed(0, n))
 	);
 
+	--Constant values arctangent hyperbolic table
+	type data_arctanh is array (0 to iterations-1) of std_logic_vector(n-1 downto 0);
+	signal arctanh: data_arctanh := (
+		std_logic_vector(to_signed(8_999, n)), std_logic_vector(to_signed(4_184, n)), 
+		std_logic_vector(to_signed(2_058, n)), std_logic_vector(to_signed(1_025, n)), 
+		std_logic_vector(to_signed(1_025, n)), std_logic_vector(to_signed(512, n)), 
+		std_logic_vector(to_signed(256, n)), std_logic_vector(to_signed(128, n)), 
+		std_logic_vector(to_signed(64, n)), std_logic_vector(to_signed(32, n)), 
+		std_logic_vector(to_signed(16, n)), std_logic_vector(to_signed(8, n)), 
+		std_logic_vector(to_signed(4, n)), std_logic_vector(to_signed(2, n)), 
+		std_logic_vector(to_signed(1, n)), std_logic_vector(to_signed(0, n))
+	);
+
 begin
 
 	--Registers pipeline inputs and outputs
@@ -81,37 +95,42 @@ begin
 	begin
 		if rst = '0' then
 			x_i_t <= (others=>'0');
-			y_i_t <= (others=>'0');
-			z_i_t <= (others=>'0');
 			x_o_t <= (others=>'0');
+			y_i_t <= (others=>'0');
 			y_o_t <= (others=>'0');
+			z_i_t <= (others=>'0');
 			z_o_t <= (others=>'0');
 		elsif rising_edge(clk) then
 			x_i_t <= x_i;
-			y_i_t <= y_i;
-			z_i_t <= z_i;
 			x_o_t <= xo_temp(iterations-1);
+			y_i_t <= y_i;
 			y_o_t <= yo_temp(iterations-1);
+			z_i_t <= z_i;
 			z_o_t <= zo_temp(iterations-1);
 		end if;
 	end process inputs_outputs;
 
-	--Registers pipeline enable and mode
+	--Registers pipeline enable, mode and coordiante system
 	enable_mode: process(clk, rst)
 	begin
 		if rst = '0' then
 			mode_temp <= (others=>'0');
 			enable_temp <= (others=>'0');
+			coord_temp <= (others=>'0');
 		elsif rising_edge(clk) then
 			mode_temp(0) <= mode;
 			mode_temp(iterations+1 downto 1) <= mode_temp(iterations downto 0);
 			enable_temp(0) <= enable;
 			enable_temp(iterations+1 downto 1) <= enable_temp(iterations downto 0);
+			coord_temp(0) <= coord_sys;
+			coord_temp(iterations+1 downto 1) <= coord_temp(iterations downto 0);
 		end if;
 	end process enable_mode;
 
-	-- Scale factor (1 / 1.6468) * 2**14 = 9.949     (14 bits implementation)
-	x_temp <= std_logic_vector(to_signed(9_949, n)) when mode_temp(0) = '0' else x_i_t;
+	-- Scale factor (1 / 1.6468) * 2**14 = 9.949  for circular coordinate system   (14 bits implementation)
+	-- Scale factor (1 / 0.8297) * 2**14 = 19.744 for hyperbolic coordinate system (14 bits implementation)
+	const_aux <= std_logic_vector(to_signed(9_949, n)) when coord_temp(0) = '0' else std_logic_vector(to_signed(19_744, n));
+	x_temp <= const_aux when mode_temp(0) = '0' else x_i_t;
 
 	-- Generic implementation
 	iteration: for i in 0 to iterations-1 generate
@@ -125,7 +144,9 @@ begin
 				y_i => yi_temp(i),
 				z_i => zi_temp(i),
 				arctan => arctan(i),
+				arctanh => arctanh(i),
 				mode => mode_temp(i+1),
+				coord_sys => coord_temp(i+1),
 				x_o => xo_temp(i),
 				y_o => yo_temp(i),
 				z_o => zo_temp(i)
@@ -208,5 +229,6 @@ begin
 	z_o <= z_o_t;
 	mode_o <= mode_temp(iterations+1);
 	enable_o <= enable_temp(iterations+1);
+	coord_out <= coord_temp(iterations+1);
 
 end rtl;
