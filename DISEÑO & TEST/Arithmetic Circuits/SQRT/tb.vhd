@@ -18,15 +18,15 @@ use std.textio.all;
 
 entity tb is
 generic(
-	n: natural := 6
+	n: natural := 16
 );
 end entity;
 
 architecture rtl of tb is
 
 signal radicand: std_logic_vector(n-1 downto 0);
-signal root: std_logic_vector((n/2)-1 downto 0);
-signal remainder: std_logic_vector(n+(n/2)-1 downto 0);
+signal root: std_logic_vector(n-1 downto 0);
+signal remainder: std_logic_vector(n-1 downto 0);
 signal radicand_temp: signed(n-1 downto 0) := (others=>'0');
 
 begin

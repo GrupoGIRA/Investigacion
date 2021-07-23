@@ -15,6 +15,7 @@
 --    Generic n: bits numbers and must be even
 --    This algorithm is based:
 --        Israel Koren. Computer Algorithms. 2nd Edition. AK Peters Ltd. 2002
+--        
 --**********************************************************************************************************************
 
 library ieee;
@@ -26,8 +27,8 @@ generic(
 );
 port(
 	radicand: in std_logic_vector(n-1 downto 0);
-	root_int: out std_logic_vector((n/2)-1 downto 0);
-	root_decimal: out std_logic_vector(n+(n/2)-1 downto 0)
+	root_int: out std_logic_vector(n-1 downto 0);
+	root_decimal: out std_logic_vector(n-1 downto 0)
 );
 end entity;
 
@@ -97,7 +98,7 @@ steps_instantation: for i in 0 to n-1 generate
 end generate steps_instantation;
 
 --output assigns
-root_int <= rootSignal(n-1 downto (n/2));
-root_decimal <= rootSignal((n/2)-1 downto 0) & remainderArray(n)(n-1 downto 0);
+root_int <= rootSignal;
+root_decimal <= remainderArray(n)(n-1 downto 0);
 
 end rtl;
