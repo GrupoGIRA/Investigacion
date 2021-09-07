@@ -1,8 +1,8 @@
 --*************************************************************************************************
 --	Stream Processing CORDIC Algorithm Implementation
 --	Authors:
---    Robert Alexander Limas
---    Wilson Javier Perez Holguin
+--      Robert Alexander Limas S
+--      Wilson Javier Perez H
 --
 --	GIRA Research Group
 --	Universidad Pedagogica y Tecnologica de Colombia
