@@ -1,8 +1,8 @@
 """
 CORDIC algorithm implementation
 Authors:
---  Robert Limas
---  Wilson Perez
+--  Robert Alexander Limas S
+--  Wilson Javier Perez H
 Year: 2020
 
 Inputs:
