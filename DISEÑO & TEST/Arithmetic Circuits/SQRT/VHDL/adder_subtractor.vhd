@@ -1,8 +1,8 @@
 --**********************************************************************************************************************
 --Sqrt int Implementation
 --Authors:
---  Robert Limas
---  Wilson Perez
+--  Robert Alexander Limas S
+--  Wilson Javier Perez H
 --Year: 2021
 --Research Group GIRA
 --Universidad Pedagogica y Tecnologica de Colombia
