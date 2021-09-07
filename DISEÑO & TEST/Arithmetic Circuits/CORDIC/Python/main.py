@@ -7,8 +7,11 @@ Year: 2020
 """
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
-from CORDIC import coding, decoding
+from CORDIC import *
+
+matplotlib.rcParams.update({'font.size': 22})
 
 
 def write_file(file, data):
@@ -17,177 +20,235 @@ def write_file(file, data):
             f.write("{}\n".format(line))
 
 
-def deg2rad(value):
-    return value * np.pi / 180
-
-
-def rad2deg(value):
-    return value * 180 / np.pi
-
-
-def create_simulations_files():
-    start, stop = -90, 90
-    resolution = 14
-
-    modes = {'rotation': 0, 'vectoring': 1}
-    files = ["input/input_x.txt", "input/input_y.txt", "input/input_z.txt",
-             "input/input_mode.txt", "input/input_enable.txt"]
-    results = ["output/output_x_python.txt", "output/output_y_python.txt", "output/output_z_python.txt"]
-
-    data, x, y, z, mode, enable = [], [], [], [], [], []
-    data_cordic, x_cordic, y_cordic, z_cordic = [], [], [], []
-
-    rank = np.linspace(start, stop, 180)
-
-    for deg in rank:
-        # Create Z data for cordic hardware implementation sin(z) and cos(z) result
-        x.append(0)
-        y.append(0)
-        z.append(coding(deg2rad(deg), resolution))
-        mode.append(modes['rotation'])
-        enable.append(1)
-
-        # Calculate sin(z) and cos(z) with numpy
-        x_cordic.append(np.cos(deg2rad(deg)))
-        y_cordic.append(np.sin(deg2rad(deg)))
-        z_cordic.append(0)
-
-        # Create X and Y data for cordic hardware implementation arctan2(y / x) result
-        position = [np.cos(deg2rad(deg)), np.sin(deg2rad(deg))]
-        x.append(coding(position[0]))
-        y.append(coding(position[1]))
-        z.append(0)
-        mode.append(modes['vectoring'])
-        enable.append(1)
-
-        # Calculate arctan2(y / x) with numpy
-        x_cordic.append(0)
-        y_cordic.append(0)
-        z_cordic.append(np.arctan2(position[1], position[0]))
-
-    # Create files for hardware implementation
-    data.append(x)
-    data.append(y)
-    data.append(z)
-    data.append(mode)
-    data.append(enable)
-    for index, file in enumerate(files):
-        write_file(file, data[index])
-
-    # Create files for python implementation
-    data_cordic.append(x_cordic)
-    data_cordic.append(y_cordic)
-    data_cordic.append(z_cordic)
-
-    for index, file in enumerate(results):
-        write_file(file, data_cordic[index])
-
-
 def read_file(file):
     data = []
     with open(file, 'r') as f:
         lines = f.readlines()
         for line in lines:
-            data.append(line)
+            data.append(int(line))
     return data
 
 
-def absolute_error(real_value, calculate_value):
-    return (np.abs(real_value - calculate_value) / real_value) * 100
+def relative_error(real_value, calculate_value):
+    return (real_value - calculate_value) / real_value * 100
 
 
-def compare_results(hardware_data, software_data):
-    names = {'x': 0, 'y': 1, 'z': 2, 'enable': 3, 'mode': 4}
-    modes = {'rotation': 0, 'vectoring': 1}
-
-    total_data = len(hardware_data[0])
-
-    x_error, y_error, z_error, x, y, z = [], [], [], [], [], []
-
-    line_software = 0
-    for line in range(total_data):
-        if int(hardware_data[names['enable']][line]) == 1:
-            if int(hardware_data[names['mode']][line]) == modes['rotation']:
-                x_error.append(
-                    absolute_error(float(software_data[names['x']][line_software]),
-                                   decoding(float(hardware_data[names['x']][line])))
-                )
-                x.append(decoding(float(hardware_data[names['x']][line])))
-                y_error.append(
-                    absolute_error(float(software_data[names['y']][line_software]),
-                                   decoding(float(hardware_data[names['y']][line])))
-                )
-                y.append(decoding(float(hardware_data[names['y']][line])))
-            else:
-                z_error.append(
-                    absolute_error(float(software_data[names['z']][line_software]),
-                                   decoding(float(hardware_data[names['z']][line])))
-                )
-                z.append(decoding(float(hardware_data[names['z']][line])))
-            line_software += 1
-
-    return x_error, y_error, z_error, x, y, z
+def mean(array):
+    total = 0
+    for item in array:
+        if item == float("+inf") or item == float("-inf"):
+            print("Inf")
+        else:
+            print("No inf")
+            total += item
+    return total / len(array)
 
 
-def draw(x, y, z, x_error, y_error, z_error):
-    temp = map(lambda angle: rad2deg(angle), z)
-    axes_x = np.array(list(temp))
-    figure, axes = plt.subplots(3, 2)
-    axes[0, 0].plot(axes_x, x[: len(z)])
-    axes[0, 0].set_title("X values")
-    axes[0, 0].set_xlabel("Deg")
-    axes[0, 0].set_ylabel("X")
-    axes[0, 0].grid()
-    axes[1, 0].plot(axes_x, y[: len(z)])
-    axes[1, 0].set_title("Y values")
-    axes[1, 0].set_xlabel("Deg")
-    axes[1, 0].set_ylabel("Y")
-    axes[1, 0].grid()
-    axes[2, 0].plot(axes_x, z[: len(z)])
-    axes[2, 0].set_title("Z values")
-    axes[2, 0].set_xlabel("Deg")
-    axes[2, 0].set_ylabel("Z")
-    axes[2, 0].grid()
-    axes[0, 1].plot(axes_x, x_error[: len(z)])
-    axes[0, 1].set_title("X Absolute Error")
-    axes[0, 1].set_xlabel("Deg")
-    axes[0, 1].set_ylabel("Error")
-    axes[0, 1].grid()
-    axes[1, 1].plot(axes_x, y_error[: len(z)])
-    axes[1, 1].set_title("Y Absolute Error")
-    axes[1, 1].set_xlabel("Deg")
-    axes[1, 1].set_ylabel("Error")
-    axes[1, 1].grid()
-    axes[2, 1].plot(axes_x, z_error[: len(z)])
-    axes[2, 1].set_title("Z Absolute Error")
-    axes[2, 1].set_xlabel("Deg")
-    axes[2, 1].set_ylabel("Error")
-    axes[2, 1].grid()
+def variance(mean, array):
+    total = 0
+    for item in array:
+        if item == float("+inf") or item == float("-inf"):
+            print("Inf")
+        else:
+            print("No inf")
+            total += np.power((item - mean), 2)
+    return total / len(array)
+
+
+def results(python, vhdl):
+    labels = ["Sin", "Cos", "ArcTan", "Sin Hyperbolic", "Cos Hyperbolic", "ArcTanH"]
+    # for graphs in range(len(vhdl)):
+
+    error = []
+    graphs = 1
+    axes_ = 0
+    for item in range(len(python[graphs])):
+        try:
+            error.append(relative_error(python[graphs][item], vhdl[graphs][item]))
+        except Exception as ex:
+            print(ex)
+    average = mean(error)
+    variance_ = variance(average, error)
+    standard_deviation = np.sqrt(variance_)
+    print(f"Error {labels[graphs]} mean: {round(average, 5)}, variance: {round(variance_, 5)}, standard_deviation: {round(standard_deviation, 5)}")
+    fig, axes = plt.subplots(1, 2)
+    axes[0].plot(python[axes_][:len(vhdl[graphs])], vhdl[graphs])
+    axes[0].set_title(f"{labels[graphs]}")
+    # axes[0].set_ylim(-1.1, 1.1)
+    axes[0].set_ylabel("Amplitude")
+    axes[0].set_xlabel("Deg")
+    axes[0].grid()
+    axes[1].plot(python[axes_][:len(vhdl[graphs])], error, '--*')
+    axes[1].set_title("Relative Error")
+    axes[1].set_ylim(-0.8, 1.5)
+    axes[1].set_ylabel("Error (%)")
+    axes[1].set_xlabel("")
+    axes[1].grid()
     plt.show()
 
 
-def implementation_error():
-    hardware = ["output/output_x_vhdl.txt", "output/output_y_vhdl.txt", "output/output_z_vhdl.txt",
-                "output/output_enable_vhdl.txt", "output/output_mode_vhdl.txt"]
-    software = ["output/output_x_python.txt", "output/output_y_python.txt", "output/output_z_python.txt"]
+def create_files():
+    start, end = -89, 89
+    resolution = 14
+    inputs_files = ['./input/input_x.txt', './input/input_y.txt', './input/input_z.txt', './input/input_mode.txt',
+                    './input/input_coor.txt', './input/input_enable.txt']
+    x, y, z = [], [], []
+    enable, mode, coor = [], [], []
+    sin, cos, arctan = [], [], []
+    sinh, cosh, arctanh = [], [], []
+    axes_sin_cos, axes_sinh_cosh, axes_tanh = [], [], []
+    for angle in range(start, end):
+        angle_rad = deg2rad(angle)
+        angle_fixed = coding(angle_rad, resolution)
+        axes_sin_cos.append(angle)
+        
+        # Adding data for vectoring mode in circular coordinate
+        x.append(coding(np.cos(angle_rad), resolution))
+        y.append(coding(np.sin(angle_rad), resolution))
+        z.append(0)
+        enable.append(1)
+        mode.append(1)
+        coor.append(0)
+        arctan.append(np.arctan2(np.sin(angle_rad), np.cos(angle_rad)))
 
-    data_hardware, data_software = [], []
+        # Adding data for rotation mode in circular coordinate
+        x.append(0)
+        y.append(0)
+        z.append(angle_fixed)
+        enable.append(1)
+        mode.append(0)
+        coor.append(0)
+        sin.append(np.sin(angle_rad))
+        cos.append(np.cos(angle_rad))
 
-    # Read hardware simulation files
-    for file in hardware:
-        data_hardware.append(read_file(file))
+        if np.abs(angle) < 61:
+            # Adding data for vectoring mode in hyperbolic coordinate
+            if np.abs(coding(np.sin(angle_rad)) / coding(np.cos(angle_rad))) < 0.6:
+                x.append(coding(np.cos(angle_rad), resolution))
+                y.append(coding(np.sin(angle_rad), resolution))
+                z.append(0)
+                enable.append(1)
+                mode.append(1)
+                coor.append(1)
+                arctanh.append(np.arctanh(np.sin(angle_rad) / np.cos(angle_rad)))
+                axes_tanh.append(np.sin(angle_rad) / np.cos(angle_rad))
 
-    # Read software simulation files
-    for file in software:
-        data_software.append(read_file(file))
+            # Adding data for rotation mode in hyperbolic coordinate
+            x.append(0)
+            y.append(0)
+            z.append(angle_fixed)
+            enable.append(1)
+            mode.append(0)
+            coor.append(1)
+            sinh.append(np.sinh(angle_rad))
+            cosh.append(np.cosh(angle_rad))
+            axes_sinh_cosh.append(angle)
 
-    x_error, y_error, z_error, x, y, z = compare_results(data_hardware, data_software)
-    draw(x, y, z, x_error, y_error, z_error)
+    write_file(inputs_files[0], x)
+    write_file(inputs_files[1], y)
+    write_file(inputs_files[2], z)
+    write_file(inputs_files[3], mode)
+    write_file(inputs_files[4], coor)
+    write_file(inputs_files[5], enable)
+    return [sin, cos, arctan, sinh, cosh, arctanh, axes_sin_cos, axes_sinh_cosh, axes_tanh]
+
+
+def read_files():
+    outputs_files = ['./output/output_x_vhdl.txt', './output/output_y_vhdl.txt', './output/output_z_vhdl.txt',
+                     './output/output_mode_vhdl.txt', './output/output_coor_vhdl.txt',
+                     './output/output_enable_vhdl.txt']
+    x = read_file(outputs_files[0])
+    y = read_file(outputs_files[1])
+    z = read_file(outputs_files[2])
+    mode = read_file(outputs_files[3])
+    coor = read_file(outputs_files[4])
+    enable = read_file(outputs_files[5])
+    sin, cos, arctan = [], [], []
+    sinh, cosh, arctanh = [], [], []
+    resolution = 14
+    for index in range(len(mode)):
+        if enable[index] == 1:  # Data process
+            if coor[index] == 0:  # Circular coordinate system
+                if mode[index] == 0:  # Rotation mode
+                    cos.append(decoding(x[index], resolution))
+                    sin.append(decoding(y[index], resolution))
+                else:  # Vectoring mode
+                    arctan.append(decoding(z[index], resolution))
+            else:  # Hyperbolic coordinate system
+                if mode[index] == 0:  # Rotation mode
+                    cosh.append(decoding(x[index], resolution))
+                    sinh.append(decoding(y[index], resolution))
+                else:  # Vectoring mode
+                    arctanh.append(decoding(z[index], resolution))
+
+    return [sin, cos, arctan, sinh, cosh, arctanh]
+
+
+def calculate_iterations(resolution=14):
+    steps = range(1, 17)
+    angle = 45
+    x, y = 1.0, 1.0
+    angle_rad = deg2rad(angle)
+    artan, artan_numpy = [], []
+    sin, sin_numpy = [], []
+    for step in steps:
+        artan_numpy.append(np.arctan2(y, x))
+        artan.append(cordic_fixed_point(x, y, 0.0, mode='vectoring', resolution=resolution, iterations=step)[2])
+        sin_numpy.append(np.sin(angle_rad))
+        sin.append(cordic_fixed_point(0.0, 0.0, angle_rad, resolution=resolution, iterations=step)[1])
+    fig, axes = plt.subplots(1, 2)
+    axes[0].plot(steps, artan, 'k*-')
+    axes[0].plot(steps, artan_numpy, 'b--')
+    axes[0].set_title(f"Atan2 value {x} X and {y} Y")
+    axes[0].set_ylabel("Value")
+    axes[0].set_xlabel("Iterations")
+    axes[0].legend(['CORDIC compute', 'Numpy compute'])
+    axes[0].grid(color='grey', linestyle='dotted', linewidth=1)
+    axes[1].plot(steps, sin, 'k*-')
+    axes[1].plot(steps, sin_numpy, 'b--')
+    axes[1].set_title(f"Sin value {angle}°")
+    axes[1].set_ylabel("Value")
+    axes[1].set_xlabel("Iterations")
+    axes[1].legend(['CORDIC compute', 'Numpy compute'])
+    axes[1].grid(color='grey', linestyle='dotted', linewidth=1)
+    plt.show()
+
+
+def calculate_resolutions(iterations=16):
+    steps = range(1, 20)
+    angle = 45
+    x, y = 1.0, 1.0
+    angle_rad = deg2rad(angle)
+    artan, artan_numpy = [], []
+    sin, sin_numpy = [], []
+    for step in steps:
+        artan_numpy.append(np.arctan2(y, x))
+        artan.append(cordic_fixed_point(x, y, 0.0, mode='vectoring', resolution=step, iterations=iterations)[2])
+        sin_numpy.append(np.sin(angle_rad))
+        sin.append(cordic_fixed_point(0.0, 0.0, angle_rad, resolution=step, iterations=iterations)[1])
+    fig, axes = plt.subplots(1, 2)
+    axes[0].plot(steps, artan, 'k*-')
+    axes[0].plot(steps, artan_numpy, 'b--')
+    axes[0].set_title(f"Atan2 value {x} X and {y} Y")
+    axes[0].set_ylabel("Value")
+    axes[0].set_xlabel("Resolution in Bits")
+    axes[0].legend(['CORDIC compute', 'Numpy compute'])
+    axes[0].grid(color='grey', linestyle='dotted', linewidth=1)
+    axes[1].plot(steps, sin, 'k*-')
+    axes[1].plot(steps, sin_numpy, 'b--')
+    axes[1].set_title(f"Sin value {angle}°")
+    axes[1].set_ylabel("Value")
+    axes[1].set_xlabel("Resolution in Bits")
+    axes[1].legend(['CORDIC compute', 'Numpy compute'])
+    axes[1].grid(color='grey', linestyle='dotted', linewidth=1)
+    plt.show()
 
 
 def main():
-    create_simulations_files()
-    implementation_error()
+    python = create_files()
+    vhdl = read_files()
+    results(python, vhdl)
+    # calculate_resolutions()
 
 
 if __name__ == '__main__':
