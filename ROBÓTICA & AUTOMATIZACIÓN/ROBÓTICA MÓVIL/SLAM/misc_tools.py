@@ -1,8 +1,8 @@
 """
 FastSLAM algorithm implementation
 Authors:
---  Robert Limas
---  Wilson Perez
+--  Robert Alexander Limas S
+--  Wilson Javier Perez H
 misc_tools file
 Year: 2021
 """
