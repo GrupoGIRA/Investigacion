@@ -1,106 +1,106 @@
 """
 CORDIC algorithm implementation
 Authors:
---  Robert Alexander Limas S
---  Wilson Javier Perez H
+--  Robert Alexander Limas Sierra
+--  Wilson Javier Perez Holguin
 Year: 2020
-
-Inputs:
-    x (required), y (required), z (required), mode (optional, default mode rotation), iterations (optional default 16)
-Outputs:
-    trigonometric_functions -> dictionary with trigonometric functions values and keys: sin, cos, arctan2
-
-Description:
-This algorithm works between pi/2 and -pi/2 and has two operation mode
-
-1. Rotation
-    Mode used for calculate sin and cos functions
-    *** Warning: Inputs x and y should be equal to 0 and input z should be has the angle in rad ***
-2. Vectoring
-    Mode used for calculate arctan2(y / x) function
-    *** Warning: Input z should be equal to 0 ***
 """
-
 import numpy as np
+from utils import deg_to_rad, load_settings, rad_to_deg
 
 
-def cordic(x, y, z, mode='rotation', u=1, iterations=16):
-    const_circular, const_hyperbolic = constants_compute(iterations)
-    const = 1 / const_circular if u == 1 else 1 / const_hyperbolic
-    x_current = const if mode == 'rotation' and u != 0 else x
-    y_current, z_current, z_next = y, z, z
+class Cordic:
+    def __init__(self):
+        linear_data, cuircular_data, hyperbolic_data, _ = load_settings()
+        self.__linear_data = linear_data
+        self.__circular_data = cuircular_data
+        self.__hyperbolic_data = hyperbolic_data
+        self.__constants_compute()
 
-    start = 1 if u == -1 else 0
+    def cos_sin(self, angle_deg):
+        angle_rad = deg_to_rad(angle_deg)
+        x_current = self.__const_circular
+        y_current, z_current = 0.0, angle_rad
+        x, y, _ = self.__iterations_compute(x_current, y_current, z_current, mode='rotation', coord='circular')
+        return x, y
 
-    for i in range(start, iterations):
-        d_current = (1 if y_current < 0 else -1) if mode == 'vectoring' else (-1 if z_next < 0 else 1)
+    def arctan(self, x, y):
+        x_current = x
+        y_current, z_current = y, 0.0
+        _, _, z = self.__iterations_compute(x_current, y_current, z_current, mode='vectoring', coord='circular')
+        return rad_to_deg(z)
 
-        if u == 1:
-            f = np.arctan(d_current / (np.power(2, i)))
-        elif u == 0:
-            f = d_current / (np.power(2, i))
+    def cosh_sinh(self, angle_deg):
+        angle_rad = deg_to_rad(angle_deg)
+        x_current = self.__const_hyperbolic
+        y_current, z_current = 0.0, angle_rad
+        x, y, _ = self.__iterations_compute(x_current, y_current, z_current, mode='rotation', coord='hyperbolic')
+        return x, y
+
+    def arctanh(self, x, y):
+        x_current = x
+        y_current, z_current = y, 0.0
+        _, _, z = self.__iterations_compute(x_current, y_current, z_current, mode='vectoring', coord='hyperbolic')
+        return rad_to_deg(z)
+
+    def product(self, x, z):
+        x_current = x
+        y_current, z_current = 0.0, z
+        _, y, _ = self.__iterations_compute(x_current, y_current, z_current, mode='rotation', coord='linear')
+        return y
+
+    def division(self, x, y):
+        x_current = x
+        y_current, z_current = y, 0.0
+        _, _, z = self.__iterations_compute(x_current, y_current, z_current, mode='vectoring', coord='linear')
+        return z
+
+    def __iterations_compute(self, x_current, y_current, z_current, mode, coord):
+        data_iterations = self.__select_items(coord)
+        u = self.__select_u(coord)
+        for i in data_iterations:
+            d = self.__select_d(mode, y_current, z_current)
+            f = self.__select_f(coord, d, i)
+            x_next = x_current - u * ((d * y_current) / (2 ** i))
+            y_next = y_current + ((d * x_current) / (2 ** i))
+            z_next = z_current - f
+            x_current, y_current, z_current = x_next, y_next, z_next
+        return x_current, y_current, z_current
+    
+    def __select_u(self, coord):
+        if coord == 'circular':
+            return 1
+        elif coord == 'hyperbolic':
+            return -1
         else:
-            f = np.arctanh(d_current / (np.power(2, i)))
+            return 0
 
-        x_next = x_current - u * (d_current * y_current) / (np.power(2, i))
-        y_next = y_current + (d_current * x_current) / (np.power(2, i))
-        z_next = z_current - f
-
-        x_current, y_current, z_current = x_next, y_next, z_next
-
-    return x_current, y_current, z_current
-
-
-def cordic_fixed_point(x, y, z, mode='rotation', u=1, iterations=16, resolution=14):
-    const_circular, const_hyperbolic = constants_compute(iterations)
-    const = coding(1 / const_circular, resolution) if u == 1 else coding(1 / const_hyperbolic, resolution)
-    x_current = const if mode == 'rotation' and u != 0 else coding(x, resolution)
-    y_current, z_current, z_next = coding(y, resolution), coding(z, resolution), coding(z, resolution)
-
-    if u == -1:
-        temp = [1, 2, 3, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 14, 15, 16, 17, 18, 19, 20]
-    else:
-        temp = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
-
-    for i in range(iterations):
-        d_current = (1 if y_current < 0 else -1) if mode == 'vectoring' else (-1 if z_next < 0 else 1)
-
-        if u == 1:
-            f = int(np.power(2, resolution) * (np.arctan(d_current * (1 / (np.power(2, temp[i]))))))
-        elif u == 0:
-            f = int(np.power(2, resolution) * d_current / (np.power(2, temp[i])))
+    def __select_f(self, coord, d, i):
+        if coord == 'circular':
+            return np.arctan(d / (2 ** i))
+        elif coord == 'hyperbolic':
+            return np.arctanh(d / (2 ** i))
         else:
-            f = int(np.power(2, resolution) * np.arctanh(d_current / (np.power(2, temp[i]))))
+            return d / (2 ** i)
 
-        x_next = int(x_current - u * (d_current * y_current) / (np.power(2, temp[i])))
-        y_next = int(y_current + (d_current * x_current) / (np.power(2, temp[i])))
-        z_next = int(z_current - f)
+    def __select_d(self, mode, y_current, z_current):
+        if mode == 'vectoring':
+            return 1 if y_current < 0 else -1
+        else:
+            return -1 if z_current < 0 else 1
 
-        x_current, y_current, z_current = x_next, y_next, z_next
+    def __select_items(self, coord):
+        if coord == 'circular':
+            return self.__circular_data
+        elif coord == 'hyperbolic':
+            return self.__hyperbolic_data
+        else:
+            return self.__linear_data
 
-    return decoding(x_current, resolution), decoding(y_current, resolution), decoding(z_current, resolution)
-
-
-def constants_compute(iterations=14):
-    circular, hyperbolic = 1.0, 1.0
-    for iteration in range(iterations):
-        circular = circular * np.sqrt(1 + (1 / np.power(2, 2 * iteration)))
-        if iteration > 0:
-            hyperbolic = hyperbolic * np.sqrt(1 - (1 / np.power(2, 2 * iteration)))
-    return circular, hyperbolic
-
-
-def coding(value, resolution=14):
-    return int(value * np.power(2, resolution))
-
-
-def decoding(value, resolution=14):
-    return value / np.power(2, resolution)
-
-
-def deg2rad(value):
-    return value * np.pi / 180.0
-
-
-def rad2deg(value):
-    return value * 180.0 / np.pi
+    def __constants_compute(self):
+        const_circular, const_hyperbolic = 1.0, 1.0
+        for i in range(len(self.__circular_data)):
+            const_circular = const_circular * np.sqrt(1 + (1 / (2 ** (2 * i))))
+        for i in range(len(self.__hyperbolic_data)):
+            const_hyperbolic = const_hyperbolic * np.sqrt(1 - (1 / (2 ** (2 * (i + 1)))))
+        self.__const_circular, self.__const_hyperbolic = 1 / const_circular, 1 / const_hyperbolic
