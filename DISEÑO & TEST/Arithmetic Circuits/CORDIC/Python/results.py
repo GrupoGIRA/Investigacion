@@ -8,7 +8,7 @@ Year: 2020
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import decoding, coding, deg_to_rad, get_fullpath, read_file, rad_to_deg, relative_error, write_file
+from utils import decoding, coding, deg_to_rad, get_fullpath, mean, read_file, rad_to_deg, absolute_error, write_file, variance
 
 
 def create_files_to_simulate(resolution=14):
@@ -142,7 +142,10 @@ def show_results(resolution=14):
 def plot_results(vhdl_values, numpy_values, axes_data, name):
     error = []
     for index in range(len(vhdl_values)):
-        error.append(relative_error(numpy_values[index], vhdl_values[index]))
+        error.append(absolute_error(numpy_values[index], vhdl_values[index]))
+    error_mean = mean(error)
+    variance_ = variance(error, error_mean)
+    print('Error mean {} Variance {}'.format(error_mean, variance_))
     fig, axes = plt.subplots(1, 2)
     axes[0].plot(axes_data[:len(vhdl_values)], vhdl_values)
     axes[0].set_title(name)
@@ -150,9 +153,9 @@ def plot_results(vhdl_values, numpy_values, axes_data, name):
     axes[0].set_xlabel('Angle')
     axes[0].grid()
     axes[1].plot(axes_data[:len(vhdl_values)], error, '--*')
-    axes[1].set_title('Relative Error')
+    axes[1].set_title('Absolute Error')
     axes[1].set_ylabel('Error (%)')
     axes[1].set_xlabel('Angle')
-    axes[1].set_ylim(-0.8, 1.5)
+    # axes[1].set_ylim(-0.8, 1.5)
     axes[1].grid()
     plt.show()

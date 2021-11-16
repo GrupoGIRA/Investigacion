@@ -6,7 +6,7 @@ Authors:
 Year: 2020
 """
 from CORDICFixedPoint import Cordic
-from utils import deg_to_rad, mean, relative_error, variance
+from utils import deg_to_rad, mean, absolute_error, variance
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -118,23 +118,15 @@ def resolution_bits_test():
             cordic = Cordic(resolution_param=bit)
             cos, _ = cordic.cos_sin(angle)
             cos_numpy = np.cos(deg_to_rad(angle))
-            err = relative_error(cos_numpy, cos)
+            err = absolute_error(cos_numpy, cos)
             error_in_angle.append(err)
         mean_error = mean(error_in_angle)
         error.append(mean_error)
-    fig, axes = plt.subplots(1, 2)
-    axes[0].plot(bits, error, 'b*-')
-    axes[0].set_title('Relative Error')
-    axes[0].set_ylabel('Error (%)')
-    axes[0].set_xlabel('Resolution in Bits')
-    axes[0].grid()
-    axes[1].plot(bits, error, 'b*-')
-    axes[1].set_title('Relative Error')
-    axes[1].set_ylabel('Error (%)')
-    axes[1].set_xlabel('Resolution in Bits')
-    axes[1].set_xlim(13, 20)
-    axes[1].set_ylim(-0.1, 1)
-    axes[1].grid()
+    plt.plot(bits, error, 'b*-')
+    plt.title('Absolute Error')
+    plt.ylabel('Error (%)')
+    plt.xlabel('Resolution in Bits')
+    plt.xticks([3, 6, 9, 12, 15, 18])
     plt.grid()
     plt.show()
 
@@ -149,27 +141,19 @@ def iterations_test():
             cordic = Cordic(iterations_param=iteration)
             cos, _ = cordic.cos_sin(angle)
             cos_numpy = np.cos(deg_to_rad(angle))
-            err = relative_error(cos_numpy, cos)
+            err = absolute_error(cos_numpy, cos)
             error_in_angle.append(err)
         mean_error = mean(error_in_angle)
         error.append(mean_error)
-    fig, axes = plt.subplots(1, 2)
-    axes[0].plot(iterations, error, 'b*-')
-    axes[0].set_title('Relative Error')
-    axes[0].set_ylabel('Error (%)')
-    axes[0].set_xlabel('Iterations')
-    axes[0].grid()
-    axes[1].plot(iterations, error, 'b*-')
-    axes[1].set_title('Relative Error')
-    axes[1].set_ylabel('Error (%)')
-    axes[1].set_xlabel('Iterations')
-    axes[1].set_xlim(8, 20)
-    axes[1].set_ylim(-0.1, 0.1)
-    axes[1].grid()
+    plt.plot(iterations, error, 'b*-')
+    plt.title('Absolute Error')
+    plt.ylabel('Error (%)')
+    plt.xlabel('Iterations')
+    plt.xticks([3, 6, 9, 12, 15, 18])
     plt.grid()
     plt.show()
 
 
 
 def test():
-    resolution_bits_test()
+    convergence_test()

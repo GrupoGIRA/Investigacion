@@ -6,10 +6,11 @@ Authors:
 Year: 2020
 """
 from results import show_results
+from tests import test
 
 
 def main():
-    show_results()
+    test()
 
 
 if __name__ == '__main__':
