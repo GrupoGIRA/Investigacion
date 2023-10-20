@@ -1,3 +1,4 @@
+#include "WString.h"
 #include "Arduino.h"
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
@@ -49,13 +50,14 @@ void saveF(float value, bool isValid, bool write) {
   }
     writeSD(",");
 }
-void saveFi(float value, bool isValid, bool write) {
+void saveFi(String value, bool isValid, bool write) {
   if(!write) return;
   if(isValid) {
     writeSDF(value);
     return;
   }
 }
+
 
 void gp(bool write){
   static const double REFERENCE_LAT = 5.717, REFERENCE_LON = -72.917;
@@ -67,7 +69,8 @@ void gp(bool write){
   saveI(gps.location.age(), gps.location.isValid(), write);
   saveF(gps.altitude.meters(), gps.altitude.isValid(), write);
   saveF(gps.course.deg(), gps.course.isValid(), write);
-  saveFi(gps.speed.kmph(), gps.speed.isValid(), write);
+  saveF(gps.speed.kmph(), gps.speed.isValid(), write);
+  saveFi("finn", true, write);
   //printStr(gps.course.isValid() ? TinyGPSPlus::cardinal(gps.course.value()) : "* ", 6);
 
   unsigned long distanceKmToReference =

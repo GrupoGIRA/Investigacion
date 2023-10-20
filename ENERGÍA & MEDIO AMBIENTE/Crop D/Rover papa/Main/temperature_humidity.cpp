@@ -18,7 +18,6 @@ void start_dht() {
 
 float * temp_hum() {
   // Wait a few seconds between measurements.
-  delay(2000);
 
   // Reading temperature or humidity takes about 250 milliseconds!
   float h1 = dht1.readHumidity();

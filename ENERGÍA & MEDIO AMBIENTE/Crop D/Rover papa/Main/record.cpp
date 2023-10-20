@@ -10,7 +10,7 @@
 
 File archivo;     // objeto archivo del tipo File
 
-String fileName = "prueba.txt";
+String fileName = "PRUEBA2.txt";
 
 void writeSD(String line) {
   if (!SD.begin(SSpin)) {     // inicializacion de tarjeta SD
@@ -107,7 +107,7 @@ void writeSD(float value) {
     start_Display("error en apertura de prueba.txt","",1);
   }
 }
-void writeSDF(float value) {
+void writeSDF(String value) {
   if (!SD.begin(SSpin)) {     // inicializacion de tarjeta SD
     start_Display("fallo en inicializacion !","",1);
     Serial.println("fallo en inicializacion !");// si falla se muestra texto correspondiente y
@@ -117,7 +117,7 @@ void writeSDF(float value) {
   archivo = SD.open(fileName, FILE_WRITE);  // apertura para lectura/escritura de archivo prueba.txt
 
   if (archivo) {
-    archivo.println(value);  // escritura de una linea de texto en archivo
+    archivo.println(" ");  // escritura de una linea de texto en archivo
     archivo.close();        // cierre del archivo
     //start_Display("escritura correcta");
     Serial.println("escritura correcta"); // texto de escritura correcta en monitor serie

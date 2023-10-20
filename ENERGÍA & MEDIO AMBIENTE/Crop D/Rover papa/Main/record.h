@@ -7,5 +7,5 @@ String intToString(int contador);
 void writeSD(int value);
 void writeSD(String line);
 void writeSD(float line);
-void writeSDF(float value);
+void writeSDF(String value);
 void write_record(int contador, uint16_t lum, float temp1, float hum1, float temp2, float hum2, int porcentaje, String fecha);

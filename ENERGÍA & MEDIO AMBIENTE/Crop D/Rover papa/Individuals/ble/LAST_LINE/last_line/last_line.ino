@@ -17,7 +17,7 @@ void setup() {
     return;
   }
 
-  myFile = SD.open("PRUEBA.txt");
+  myFile = SD.open("PRUEBA1.txt");
 
   if (myFile) {
     while (myFile.available()) {
