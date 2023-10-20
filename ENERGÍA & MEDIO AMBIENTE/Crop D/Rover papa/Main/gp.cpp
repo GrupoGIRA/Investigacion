@@ -8,18 +8,14 @@
 static const int RXPin = 10, TXPin = 2;
 static const int GPSBaud = 9600;
 
-// The TinyGPS++ object
 TinyGPSPlus gps;
 
-// The serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
 
 void start_gp(){
   ss.begin(GPSBaud);
 }
 
-// This custom version of delay() ensures that the gps object
-// is being "fed".
 static void smartDelay(unsigned long ms)
 {
   unsigned long start = millis();

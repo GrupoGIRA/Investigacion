@@ -1,7 +1,11 @@
+"""
+----------------------------------Estación Metereológica----------------------------------
+Year: 2023
+"""
 #include "Arduino.h"
 #include <SoftwareSerial.h>
-#include <LiquidCrystal_I2C.h>  // librería para el LCD por I2C
-#include <RTClib.h>             // librería para el RTCLib
+#include <LiquidCrystal_I2C.h>  
+#include <RTClib.h>             
 #include <TinyGPS++.h>
 #include "WString.h"
 #include "record.h"
@@ -30,7 +34,7 @@ char dato = 'z';
 
 void setup() {
   pinMode(boton, INPUT);
-  Serial.begin(9600); // Iniciar comunicación serie para monitoreo
+  Serial.begin(9600); 
   BLE.begin(38400);
   start_gp();
   Serial.println("0 setup");
@@ -43,7 +47,6 @@ void setup() {
 }
 
 void loop() {
-    //----Llamado de las funciones----
     
     gp(false);
     //estado = digitalRead(boton);
@@ -68,10 +71,8 @@ void loop() {
       dato = 'z';
       delay(0);
     }
-   // Serial.println("Esperando la toma los datos");
     start_Display("Click para tomar","los datos!!",0); 
     //else{
     //  start_Display("No se guardaron datos :(");
-    //}  
-     
+    //}    
 }

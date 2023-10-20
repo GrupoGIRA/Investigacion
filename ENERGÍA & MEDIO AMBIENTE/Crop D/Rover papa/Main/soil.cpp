@@ -6,7 +6,6 @@ const int humedadAgua = 10;
 int soil() 
 {
    int humedad = analogRead(A0);
-   //Serial.println(humedad);
    
    int porcentajeHumedad = map(humedad, humedadAire, humedadAgua, 0, 100);
    if(porcentajeHumedad > 100) {

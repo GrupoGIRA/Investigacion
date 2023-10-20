@@ -1,5 +1,5 @@
 #include "Arduino.h"
-#include <Wire.h>               // librería para comunicaciones con el pc
+#include <Wire.h>            
 #include <BH1750.h>
 
 BH1750 luxometro;
@@ -11,6 +11,5 @@ void start_lux() {
 
 uint16_t lux(){
   uint16_t lux=luxometro.readLightLevel();
-  //Serial.println("Iluminacion tomada");
   return lux;
 }

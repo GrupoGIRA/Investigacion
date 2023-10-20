@@ -2,7 +2,7 @@
 #include "WString.h"
 #include <LiquidCrystal_I2C.h> 
 
-LiquidCrystal_I2C lcd(0x27,16,2); // (0x3f,16,2) || (0x27,16,2)  ||(0x20,16,2) 
+LiquidCrystal_I2C lcd(0x27,16,2); // Otras direcciones: (0x3f,16,2) || (0x27,16,2)  ||(0x20,16,2) 
 
 void start_Display(String cadena, String cadena1,  boolean  error) {
 
