@@ -1,7 +1,7 @@
-"""
-----------------------------------Estación Metereológica----------------------------------
-Year: 2023
-"""
+
+//----------------------------------Estación Metereológica----------------------------------
+//Year: 2023
+
 #include "Arduino.h"
 #include <SoftwareSerial.h>
 #include <LiquidCrystal_I2C.h>  
