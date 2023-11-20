@@ -5,7 +5,7 @@
 #include "record.h"
 #include "display.h"
 
-static const int RXPin = 10, TXPin = 2;
+static const int RXPin = 10, TXPin = 11;
 static const int GPSBaud = 9600;
 
 TinyGPSPlus gps;
@@ -56,7 +56,7 @@ void saveFi(String value, bool isValid, bool write) {
 
 
 void gp(bool write){
-  static const double REFERENCE_LAT = 5.717, REFERENCE_LON = -72.917;
+  static const double REFERENCE_LAT = 5.717833, REFERENCE_LON = -72.943173;
 
   saveI(gps.satellites.value(), gps.satellites.isValid(), write);
   saveI(gps.hdop.value(), gps.hdop.isValid(), write);

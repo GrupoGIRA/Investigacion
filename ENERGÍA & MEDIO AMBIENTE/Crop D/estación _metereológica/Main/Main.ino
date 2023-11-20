@@ -25,7 +25,7 @@
 const int humedadAire = 780;
 const int humedadAgua = 10;
 
-static const int RXPin = 2, TXPin = 3;
+static const int RXPin = 10, TXPin = 11;
 
 int contador = 0;
 //int estado = digitalRead(boton);

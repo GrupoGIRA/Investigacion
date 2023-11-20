@@ -1,6 +1,6 @@
 const int sensorPin = A0;
-const int humedadAire = 780;
-const int humedadAgua = 10;
+const int humedadAire = 750;
+const int humedadAgua = 400;
 
 void setup() 
 {

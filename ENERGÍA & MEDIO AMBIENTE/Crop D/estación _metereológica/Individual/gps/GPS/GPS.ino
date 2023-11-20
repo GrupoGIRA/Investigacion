@@ -5,7 +5,7 @@
 #include <SD.h>     // incluye libreria para tarjetas SD
 
 long lat,lon;
-SoftwareSerial gpsSerial(2, 3);
+SoftwareSerial gpsSerial(10, 11);
 TinyGPS gps;
 void setup() {
   Serial.begin(9600);
@@ -22,7 +22,6 @@ void writeSD(long line) {
     return;         // se sale del setup() para finalizar el programa
   }
   
-  archivo = SD.open("prueba2.txt", FILE_WRITE);  // apertura para lectura/escritura de archivo prueba.txt
 
   if (archivo) {
     archivo.println(line);  // escritura de una linea de texto en archivo
