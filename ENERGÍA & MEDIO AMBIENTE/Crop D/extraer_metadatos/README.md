@@ -2,4 +2,4 @@
 
 # Algoritmo Extracción de los metadatos
 
-Para la extracción de los metadatos se usó la librería exiftool en el sistema operativo linux, por lo que es importante tenerla instalada, el comando de exiftool se ejecuta como un subproceso dentro de python, la salida del comando de convierte a JSON o diccionario, debido a que no se necesitan todos los metadatos se filtraron solo los datos definidos en el diccionario de la tabla Multiespectral y por último se retorna el diccionario filtrado.
+Para la extracción de los metadatos se usó la librería exiftool en el sistema operativo linux, por lo que es importante tenerla instalada, el comando de exiftool se ejecuta como un subproceso dentro de python, la salida del comando de convierte a JSON o diccionario, se filtraron solo los datos definidos en el diccionario y por último se retorna el diccionario filtrado.
