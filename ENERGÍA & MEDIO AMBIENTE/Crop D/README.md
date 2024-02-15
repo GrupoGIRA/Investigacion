@@ -33,6 +33,6 @@ El presente proyecto consiste en la recolección de datos medioambientales, imá
 
 **4.** El repositorio del código de la app mobile para la recolección de observaciones. 📱
 
-**4.** El dataset 🌱
+**5.** El dataset 🌱
 
 🌿🥔🤖⛰️🛰️🌿🥔🤖⛰🛰️️🌿🥔🤖 ⛰🛰️
