@@ -16,20 +16,14 @@
 #include "soil.h"
 #include "gp.h"
 #include "ble.h"
-
-
 #define boton 45
 #define  BLE Serial1
 
 
 const int humedadAire = 780;
 const int humedadAgua = 10;
-
 static const int RXPin = 10, TXPin = 11;
-
 int contador = 0;
-//int estado = digitalRead(boton);
-//int estado_anterior = estado;
 char dato = 'z';
 
 void setup() {
@@ -43,28 +37,21 @@ void setup() {
   start_clock();
   start_ble();
   Serial.println("E setup");
-
 }
-
 void loop() {
-    
     gp(false);
-    //estado = digitalRead(boton);
     int porcentaje = soil();
     uint16_t luminosidad = lux();
     float * sensor_dht= temp_hum();
     String fecha = day();
-
     if (BLE.available()) {
     dato = (char) BLE.read();}
-
     if(strcmp(dato, 'a') == 0) {     
       contador++;
       start_Display("Guardando datos"," ",false);
       Serial.print("Guardando datos");
       write_record(contador,luminosidad,sensor_dht[0],sensor_dht[1],sensor_dht[2],sensor_dht[3], porcentaje, fecha);
       gp(true);
-      //estado_anterior= estado;
       String linea = last();
       Serial.println(linea);
       BLE.println(linea);
@@ -72,7 +59,4 @@ void loop() {
       delay(0);
     }
     start_Display("Click para tomar","los datos!!",0); 
-    //else{
-    //  start_Display("No se guardaron datos :(");
-    //}    
 }

@@ -17,6 +17,5 @@ void start_Display(String cadena, String cadena1,  boolean  error) {
   lcd.print(cadena1); 
   delay(1000);
   lcd.noBacklight();
-
 }
 
