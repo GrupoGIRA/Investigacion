@@ -27,8 +27,12 @@ El presente proyecto consiste en la recolección de datos medioambientales, imá
 ## ¿Qué encontrarás en este repositorio?
 **1.** El repositorio de los códigos de arduino para la estación metereológica. 🌦️
 
-**2.** El repositorio del código de la app mobile para la recolección de observaciones. 📱
+**2.** El repositorio del algoritmo para la extracción de los metadatos. 🗃️
 
-**3.** El dataset 🌱
+**3.** El repositorio del algoritmo para el etiquetado automatico. 🗄️
+
+**4.** El repositorio del código de la app mobile para la recolección de observaciones. 📱
+
+**4.** El dataset 🌱
 
 🌿🥔🤖⛰️🛰️🌿🥔🤖⛰🛰️️🌿🥔🤖 ⛰🛰️
