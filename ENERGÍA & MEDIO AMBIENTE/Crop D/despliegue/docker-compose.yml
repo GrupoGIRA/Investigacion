@@ -1,0 +1,137 @@
+version: '3'
+services:
+  traefik:
+    image: traefik:v2.6
+    container_name: traefik
+    restart: always
+    ports:
+      - "8080:8080"
+      - "80:80"
+      - "443:443"
+    networks:
+      - red
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    command:
+      - "--accesslog=true"
+      - "--log.level=ERROR"
+      - "--api"
+      - "--api.insecure=true"
+      - "--api.dashboard"
+      - "--providers.docker"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=red"
+      - "--providers.docker.watch=true"
+      - "--entryPoints.http.address=:80"
+      - "--entryPoints.https.address=:443"
+      - "--certificatesresolvers.dns.acme.tlschallenge=true"
+      - "--certificatesResolvers.dns.acme.email=oscar.vargas07@uptc.edu.co"
+      - "--certificatesResolvers.dns.acme.storage=/letsencrypt/acme.json"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.my-headers.headers.stsSeconds=15552000"
+
+  maria:
+    image: mariadb:10.6
+    container_name: maria
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MARIADB_ROOT_PASSWORD=una_contraseña_muy_segura
+      - MARIADB_DATABASE=nextcloud
+      - MARIADB_USER=nextcloud
+      - MARIADB_PASSWORD=otra_contraseña_segura
+    networks:
+      - red
+
+  nextcloud:
+    image: nextcloud:production
+    container_name: nextcloud
+    restart: always
+    ports:
+      - "8082:80"
+    depends_on:
+      - maria
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=otra_contraseña_segura
+      - MYSQL_HOST=maria
+    networks:
+      - red
+    labels:
+      - traefik.enable=true
+      # redirect http
+      - traefik.http.middlewares.httpToHttpsRedirectNextCloud.redirectregex.regex=^http://(.*)
+      - traefik.http.middlewares.httpToHttpsRedirectNextCloud.redirectregex.replacement=https://$${1}
+      # webhook port
+      - traefik.http.services.nextcloud.loadbalancer.server.port=80
+      # http
+      - traefik.http.routers.nextcloud.middlewares=httpToHttpsRedirectNextCloud
+      - traefik.http.routers.nextcloud.rule=Host(`next.imagenesmultiespectrales.cloud`)
+      - traefik.http.routers.nextcloud.entrypoints=http
+      # https
+      - traefik.http.routers.nextcloud-ssl.rule=Host(`next.imagenesmultiespectrales.cloud`)
+      - traefik.http.routers.nextcloud-ssl.entrypoints=https
+      - traefik.http.routers.nextcloud-ssl.tls=true
+      - traefik.http.routers.nextcloud-ssl.tls.certresolver=dns
+      # HSTS middleware
+      - traefik.http.routers.nextcloud-ssl.middlewares=my-headers
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: passwordcontrasenia
+    networks:
+      - red
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: gira
+      ME_CONFIG_BASICAUTH_PASSWORD: girapassword
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: passwordcontrasenia
+      ME_CONFIG_MONGODB_URL: mongodb://root:passwordcontrasenia@mongo:27017/
+    networks:
+      - red
+    depends_on:
+      - mongo
+    labels:
+      - traefik.enable=true
+      # redirect http
+      - traefik.http.middlewares.httpToHttpsRedirectExpress.redirectregex.regex=^http://(.*)
+      - traefik.http.middlewares.httpToHttpsRedirectExpress.redirectregex.replacement=https://$${1}
+      # webhook port
+      - traefik.http.services.mongoexpress.loadbalancer.server.port=8081
+      # http
+      - traefik.http.routers.mongoexpress.middlewares=httpToHttpsRedirectExpress
+      - traefik.http.routers.mongoexpress.rule=Host(`mexpress.imagenesmultiespectrales.cloud`)
+      - traefik.http.routers.mongoexpress.entrypoints=http
+      # https
+      - traefik.http.routers.mongoexpress-ssl.rule=Host(`mexpress.imagenesmultiespectrales.cloud`)
+      - traefik.http.routers.mongoexpress-ssl.entrypoints=https
+      - traefik.http.routers.mongoexpress-ssl.tls=true
+      - traefik.http.routers.mongoexpress-ssl.tls.certresolver=dns
+
+volumes:
+  db:
+  nextcloud:
+
+networks:
+  red:
+    driver: bridge
